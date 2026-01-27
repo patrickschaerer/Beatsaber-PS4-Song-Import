@@ -8,7 +8,7 @@ Successful:
     - Convert the beatmapfile to import it to PS4-Beatsaber 2.0 
 
 
-Audio Conversion and Import (short version):
+### Audio Conversion and Import (short version):**
 1. Extract the Beatsaber Update Package with Package Toolbox.
 2. Download a song from Beatsaver and extract that Zipfile.
 1. Use audio_converter.py to convert the song.ogg to a 44.1kHz song.wav
@@ -21,11 +21,13 @@ Audio Conversion and Import (short version):
 9. use metadata_patcher.py to import the length and filesize of the new song to the asset info of the PS4-Beatsaber songfile.
 
 
-Beatmap conversion and Import (short version):
+### Beatmap conversion and Import (short version):
 1. Use covert_v3_to_v4.py to convert a Beatmap-File (e.g. ExpertStandard.dat) from Beatsaver to Beatsaber 4.0.0 json and for a first PS4 specific compression
 2. Use recompress_beatmap.py to add a PS4 specific Header and a gzip compression. The target filename must match the Filename of the beatmap in Asset Info of the songfile (e.g. DynamiteExpert.beatmap.gz(.dat))
 3. Open the songfile (e.g. dynamite) in UABEA.
 4. Highlight the beatmapfile (e.g. DynamiteExpert.beatmap.gz) and click on Import RAW to import the createt DynamiteExpert.beatmap.gz.dat.
+
+**Unfortunately this does not work to this point and need some more hacking ... read the INSTRUCTIONS_Claude.md, BREAKTHROUGH.md, FINAL_ANALYSIS.md and compression_findings_EX.txt for more Information.**
 
 
 
