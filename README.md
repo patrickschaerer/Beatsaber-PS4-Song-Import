@@ -1,4 +1,4 @@
-# Beatsaber-PS4-Song-Import-
+# Beatsaber-PS4-Song-Import
 Import Custom Songs from Beatsaver to a Jailbroken PS4 by replacing an existing song
 
 Successful:
@@ -8,7 +8,7 @@ Successful:
     - Convert the beatmapfile to import it to PS4-Beatsaber 2.0 
 
 
-### Audio Conversion and Import (short version):**
+### Audio Conversion and Import (short version):
 1. Extract the Beatsaber Update Package with Package Toolbox.
 2. Download a song from Beatsaver and extract that Zipfile.
 1. Use audio_converter.py to convert the song.ogg to a 44.1kHz song.wav
