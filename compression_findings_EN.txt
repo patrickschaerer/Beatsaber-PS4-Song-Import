@@ -1,0 +1,123 @@
+# Findings on the Compression of Beatmap Files
+
+## Original Problem
+The file "DynamiteExpert.beatmap.gz", despite its `.gz` extension, was not a valid GZIP archive. The file begins with a proprietary header before the actual compressed content starts.
+
+## Tools Used and Initial Difficulties
+- **offzip:** The offzip tool was used to analyze zlib streams. It could not directly identify valid streams because the proprietary header caused offsets, and the tool treats GZIP streams differently than pure zlib streams.
+- **Python `zlib` library:** Initial attempts to decompress the stream as a pure zlib stream failed because the file actually contained a GZIP stream, which was wrapped by a proprietary header.
+
+## Hex Analysis and File Format Detection
+Through a detailed hex analysis of the "DynamiteExpert.beatmap.gz" file, we were able to identify the following structure of the proprietary header:
+
+1.  **Filename Length (4 Bytes):** A little-endian integer that specifies the length of the subsequent filename string.
+    *   Example: `19 00 00 00` (corresponds to 25 in decimal).
+2.  **Filename String (Variable Length):** The ASCII-encoded filename of the original compressed file.
+    *   Example: `44 79 6e 61 6d 69 74 65 45 78 70 65 72 74 2e 62 65 61 74 6d 61 70 2e 67 7a` ("DynamiteExpert.beatmap.gz").
+3.  **Null Terminator (1 Byte):** A single null byte (`00`) that terminates the filename string.
+4.  **Specific Metadata (6 Bytes):** Six additional bytes that are part of the proprietary header and precede the GZIP stream.
+    *   Example for 'DynamiteExpert.beatmap.gz': `00 00 77 0d 00 00`
+    *   Example for '100BillsExpert.beatmap.gz': `00 00 17 07 00 00`
+    *   The middle two bytes of these 6 bytes appear to contain numerical information (little-endian unsigned short):
+        *   For 'DynamiteExpert': `77 0d` (hex) = `3447` (decimal)
+        *   For '100BillsExpert': `17 07` (hex) = `1815` (decimal)
+    *   These numbers represent a *logical size* of a specific data block *within* the decompressed beatmap data, and not the total size of the compressed or decompressed file. It was observed that the "Asset Info" size displayed by UABEA (Unity Asset Bundle Extractor and Analyzer) corresponds to the values determined here plus a constant offset of 37 bytes. This suggests that UABEA adds a fixed overhead to this "logical size".
+5.  **GZIP Stream:** The actual, standard GZIP-compressed data stream begins immediately after these 6 unknown bytes. The GZIP magic number (`1f 8b`) is present at this location.
+
+**Offset of the GZIP Stream:** The GZIP stream begins at **offset 36** in the original file.
+
+## Python Scripts for (De)Compression
+
+### Decompression (`decompress_gzip.py`)
+This script reads the file, seeks to offset 36, and decompresses the rest of the file as a GZIP stream.
+
+```python
+import gzip
+import sys
+
+def decompress_gzip(filename, offset):
+    try:
+        with open(filename, 'rb') as f:
+            f.seek(offset)
+            data = f.read()
+            decompressed_data = gzip.decompress(data)
+            print(f"Successfully decompressed GZIP stream from offset {offset}")
+            with open(filename + ".decompressed", "wb") as out_file:
+                out_file.write(decompressed_data)
+            return True
+    except (gzip.BadGzipFile, EOFError) as e:
+        print(f"Failed to decompress GZIP stream from offset {offset}: {e}")
+        return False
+
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print("Usage: python decompress_gzip.py <file>")
+        sys.exit(1)
+
+    filename = sys.argv[1]
+    decompress_gzip(filename, 36) # GZIP stream starts at offset 36
+```
+
+### Recompression (`recompress.py`)
+This script takes a decompressed file, compresses it with GZIP (compression level 9), and prepends the reconstructed proprietary header.
+
+```python
+import gzip
+import sys
+import struct
+
+def recompress_file(input_filepath, output_filepath, original_filename_in_header, unknown_bytes_after_filename):
+    try:
+        with open(input_filepath, 'rb') as f:
+            decompressed_data = f.read()
+
+        # 1. GZIP compress the data
+        compressed_data = gzip.compress(decompressed_data, compresslevel=9)
+
+        # 2. Reconstruct the header
+        # 4 bytes for filename length (little-endian)
+        filename_length = len(original_filename_in_header.encode('ascii'))
+        header_part1 = struct.pack('<I', filename_length)
+
+        # Filename itself
+        header_part2 = original_filename_in_header.encode('ascii')
+
+        # Null terminator
+        header_part3 = b'\x00'
+
+        # Unknown 6 bytes
+        header_part4 = unknown_bytes_after_filename
+
+        # Combine header parts
+        full_header = header_part1 + header_part2 + header_part3 + header_part4
+
+        # 3. Combine header and compressed data
+        final_data = full_header + compressed_data
+
+        # 4. Write to output file
+        with open(output_filepath, 'wb') as f:
+            f.write(final_data)
+
+        print(f"Successfully recompressed '{input_filepath}' to '{output_filepath}'")
+        return True
+    except Exception as e:
+        print(f"Failed to recompress: {e}")
+        return False
+
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        print("Usage: python recompress.py <input_decompressed_file> <output_recompressed_file>")
+        sys.exit(1)
+
+    input_file = sys.argv[1]
+    output_file = sys.argv[2]
+    
+    original_filename_for_header = "DynamiteExpert.beatmap.gz"
+    # These are the 6 bytes that appear after the null terminator and before the GZIP stream
+    unknown_bytes = b'\x00\x00\x77\x0d\x00\x00' 
+
+    recompress_file(input_file, output_file, original_filename_for_header, unknown_bytes)
+```
+
+## Note on GZIP Compression
+It is important to note that GZIP compression is not deterministic. Even with the same compression level, the output of different compression runs or different `gzip` library versions may vary slightly. Therefore, the recompressed file will not be bit-for-bit identical to the original file. However, as long as the header is correct and the GZIP data is valid, the file should be functional.

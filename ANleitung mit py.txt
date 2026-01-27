@@ -1,0 +1,104 @@
+  Komplette Anleitung: Beat Saber Song-Umwandlung und Patching
+
+  Diese Anleitung beschreibt den gesamten Prozess zur Vorbereitung eines Custom Songs für Beat Saber, inklusive Audiokonvertierung,
+  Unity-Build (manuell), Beatmap-Vorverarbeitung und dem finalen Patching in das Ziel-Bundle.
+
+  Voraussetzungen:
+
+   * Python 3.x installiert.
+   * `UnityPy` Bibliothek installiert (pip install UnityPy).
+   * `ffmpeg` installiert und im PATH verfügbar, oder du kennst den vollen Pfad zu ffmpeg.exe.
+   * Unity Editor (Version 2018.1.6 oder ähnlich) installiert und bereit für manuelle Schritte.
+   * Ein "Template"-Unity-Projekt wie zuvor besprochen (optional, aber empfohlen für Schritt 3).
+
+  ---
+
+  Schritt 1: Song-Ordner vorbereiten
+
+  Erstelle einen Ordner für deinen neuen Song (z.B. C:\Users\Dev-Box-User\BeatsaberConversion\MeinNeuerSong). Dieser Ordner sollte
+  Folgendes enthalten:
+
+   * Die originale Audiodatei (z.B. song.egg, song.ogg, song.mp3).
+   * Die unformatierten Beatmap-Dateien (z.B. EasyStandard.dat, Expert.dat, NormalStandard.dat etc.). Beachte, dass Dateinamen mit
+     "info" oder "save" ignoriert werden.
+
+  ---
+
+  Schritt 2: Audio konvertieren (audio_converter.py)
+
+  Dieses Skript konvertiert deine originale Audiodatei in das von Unity benötigte 44100 Hz WAV-Format.
+
+  Befehl:
+  Ersetze <VOLLER_PFAD_ZUM_SONG_ORDNER> durch den Pfad zu deinem Song-Ordner (z.B.
+  C:\Users\Dev-Box-User\BeatsaberConversion\HYPNOTIZE-Tiku) und <VOLLER_PFAD_ZU_FFMPEG_EXE> durch den Pfad zu deiner ffmpeg.exe.
+
+   1 python C:\Users\Dev-Box-User\BeatsaberConversion\audio_converter.py `
+   2 --song-dir "<VOLLER_PFAD_ZUM_SONG_ORDNER>" `
+   3 --ffmpeg-path "<VOLLER_PFAD_ZU_FFMPEG_EXE>"
+
+  Ergebnis: Eine neue .wav-Datei (z.B. song_44100Hz.wav) wird in deinem Song-Ordner erstellt.
+
+  ---
+
+  Schritt 3: Audio in Unity verarbeiten (Manuell)
+
+  In diesem Schritt wird deine konvertierte .wav-Datei in Unity verarbeitet, um die benötigten sharedassets0.assets- und
+  sharedassets0.resource-Dateien zu generieren.
+
+  Vorgehen:
+
+   1. Unity Editor starten: Öffne den Unity Editor (z.B. mit deinem AudioBuilderProject-Template).
+   2. `_44100Hz.wav`-Datei importieren: Kopiere deine in Schritt 2 erstellte .wav-Datei (z.B. song_44100Hz.wav) manuell in den
+      Assets-Ordner deines Unity-Projekts.
+   3. AudioClip in Szene referenzieren:
+       * Öffne eine Szene im Unity-Projekt.
+       * Stelle sicher, dass ein GameObject mit einer AudioSource-Komponente vorhanden ist.
+       * Ziehe deine importierte .wav-Datei aus dem "Project"-Fenster in das "AudioClip"-Feld der AudioSource-Komponente im Inspector.
+       * Speichere die Szene und das Projekt.
+   4. Spieler Build erstellen:
+       * Gehe im Unity-Menü auf File > Build Settings....
+       * Wähle "PC, Mac & Linux Standalone" und "Windows" als Zielplattform.
+       * Klicke auf "Add Open Scenes", um die aktuelle Szene hinzuzufügen.
+       * Klicke auf "Build".
+       * Wähle einen leeren Ausgabeordner innerhalb deines Song-Ordners, z.B.
+         C:\Users\Dev-Box-User\BeatsaberConversion\HYPNOTIZE-Tiku\UnityBuildOutput.
+       * Nach dem Build findest du im UnityBuildOutput\<Projektname>_Data\-Ordner die Dateien sharedassets0.assets und
+         sharedassets0.resource.
+   5. Dateien verschieben: Kopiere sharedassets0.assets und sharedassets0.resource aus dem _Data-Ordner direkt in deinen Song-Ordner
+      (z.B. C:\Users\Dev-Box-User\BeatsaberConversion\HYPNOTIZE-Tiku). Du kannst den UnityBuildOutput-Ordner danach löschen.
+
+  Ergebnis: Dein Song-Ordner enthält jetzt sharedassets0.assets und sharedassets0.resource.
+
+  ---
+
+  Schritt 4: Beatmaps vorverarbeiten (beatmap_preprocessor.py)
+  Dieses Skript bereitet deine .dat-Beatmap-Dateien für den Import in UABEA vor, indem es sie Gzip-komprimiert und den speziellen
+  UABEA-Header hinzufügt.
+
+  Befehl:
+  Ersetze <VOLLER_PFAD_ZUM_SONG_ORDNER> durch den Pfad zu deinem Song-Ordner.
+
+   1 python C:\Users\Dev-Box-User\BeatsaberConversion\beatmap_preprocessor.py `
+   2 --song-dir "<VOLLER_PFAD_ZUM_SONG_ORDNER>"
+
+  Ergebnis: Für jede verarbeitete Beatmap-Datei (Easy, Normal, Hard, Expert, Medium) wird eine
+  <Schwierigkeitsgrad>_formatted.dat-Datei in deinem Song-Ordner erstellt.
+
+  ---
+
+  Schritt 5: Assets patchen (asset_patcher.py)
+
+  Dieses Skript integriert alle vorbereiteten Daten (Audio-Metadaten, Audiostream, Beatmaps) in deine Ziel-Bundle-Datei.
+
+  Befehl:
+  Ersetze <VOLLER_PFAD_ZUM_SONG_ORDNER> durch den Pfad zu deinem Song-Ordner.
+
+   1 python C:\Users\Dev-Box-User\BeatsaberConversion\asset_patcher.py `
+   2 --song-dir "<VOLLER_PFAD_ZUM_SONG_ORDNER>"
+
+  Ergebnis: Die Bundle-Datei in deinem Song-Ordner (die einzige Datei ohne Dateierweiterung, z.B. dynamite oder fakelove) wird mit
+  allen neuen Daten (Audio-Metadaten, Audiostream und Beatmaps) überschrieben.
+
+  ---
+
+  Bitte folge dieser Anleitung und lass mich wissen, wenn du beim Ausführen der Skripte auf Probleme stößt.
