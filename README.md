@@ -4,8 +4,8 @@ Import Custom Songs from Beatsaver to a Jailbroken PS4 by replacing an existing 
 Successful:
     - Convert the audiofile from a songzipfile from Beatsaver and import it to PS4-Beatsaber 2.0
 
- **To do:
-  **- Convert the beatmapfile to import it to PS4-Beatsaber 2.0
+ **To do:**
+    - Convert the beatmapfile to import it to PS4-Beatsaber 2.0 
 
 
 Audio Conversion and Import (short version):
