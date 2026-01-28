@@ -27,7 +27,7 @@ Successful:
 3. Open the songfile (e.g. dynamite) in UABEA.
 4. Highlight the beatmapfile (e.g. DynamiteExpert.beatmap.gz) and click on Import RAW to import the createt DynamiteExpert.beatmap.gz.dat.
 
-**Unfortunately this does not work to this point and need some more hacking ... read the INSTRUCTIONS_Claude.md, BREAKTHROUGH.md, FINAL_ANALYSIS.md and compression_findings_EX.txt for more Information.**
+**Unfortunately this does not work to this point and need some more hacking ... read the INSTRUCTIONS_Claude.md, BREAKTHROUGH.md, FINAL_ANALYSIS.md and compression_findings_EN.txt for more Information.**
 
 
 
