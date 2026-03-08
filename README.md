@@ -19,7 +19,7 @@ Watch the Video of the process here: https://youtu.be/YZVxmnnO6g4
 
 
    - The script requires a specific folder setup. Create a folder and place the following two files inside:
-     1.  `sharedassets0.assets`: This is the file you generated with Unity in Step 4. It acts as the **source** of the correct metadata.
+     1.  `sharedassets0.assets`: This is the file you generated with Unity in Step 5. It acts as the **source** of the correct metadata.
      2.  The modified song bundle: This is the file you saved from UABEA in Step 6 (e.g., `dynamite`). It is the **target** that will be patched.
      3.  UABEA needs to be installed in Tools/UABEA
 
