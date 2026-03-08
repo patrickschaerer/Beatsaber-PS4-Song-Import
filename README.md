@@ -3,7 +3,7 @@ Import Custom Songs from Beatsaver to a Jailbroken PS4 by replacing an existing 
 
 The original Song and the Song from Beatsaver need to habe similar BPM. Small adjustments are possible with the audio_converter.
 
-Whatch the Video of the process here: https://youtu.be/YZVxmnnO6g4
+Watch the Video of the process here: https://youtu.be/YZVxmnnO6g4
 
 **Required Tools:**
 *   **PS4 PKG Toolbox:** For extracting the main Beat Saber update package (`.pkg`).
